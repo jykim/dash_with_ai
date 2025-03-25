@@ -1,0 +1,74 @@
+tooltips:
+  regression_summary: |
+    The regression summary shows the statistical results of your model:
+    - Coefficients: The estimated effect of each predictor on the dependent variable
+    - Standard Errors: Uncertainty in the coefficient estimates
+    - t-values: Test statistics for each coefficient
+    - p-values: Probability of observing these results under the null hypothesis
+    - R-squared: Proportion of variance explained by the model
+    - Adjusted R-squared: R-squared adjusted for number of predictors
+    - F-statistic: Overall model significance test
+
+  anova_table: |
+    The Type I (Sequential) ANOVA table shows how each predictor contributes to the model:
+    - Sum of Squares: Amount of variance explained by each predictor
+    - Degrees of Freedom: Number of independent pieces of information
+    - Mean Square: Sum of Squares divided by Degrees of Freedom
+    - F-value: Test statistic for each predictor's significance
+    - p-value: Probability of observing these results under the null hypothesis
+    The order of predictors matters in Type I ANOVA.
+
+  correlation_matrix: |
+    The correlation matrix shows relationships between all variables:
+    - Red: Positive correlation (variables increase together)
+    - Blue: Negative correlation (variables move in opposite directions)
+    - Darker colors: Stronger correlations
+    - Lighter colors: Weaker correlations
+    - White: No correlation
+    Hover over cells to see exact correlation values.
+
+  residual_plot: |
+    The residual plot helps diagnose model assumptions:
+    - X-axis: Predicted values from the model
+    - Y-axis: Residuals (actual - predicted values)
+    - Red line: Zero line (ideal case)
+    - Blue line: Trend line of residuals
+    Look for:
+    - Random scatter around zero
+    - No clear patterns or trends
+    - Equal spread across predicted values
+    - No extreme outliers
+
+  data_table: |
+    The data table shows your raw data with interactive features:
+    - Sort: Click column headers to sort
+    - Filter: Use the filter boxes below headers
+    - Select: Click rows to highlight them
+    - Search: Use the search box to find specific values
+    - Pagination: Navigate through large datasets
+    - Export: Download the filtered/sorted data
+
+  predictor_selection: |
+    Select predictors for your regression model:
+    - Numeric variables: Continuous measurements
+    - Binary variables (marked with b): Two-category variables
+    - Order matters: Variables are added in selection order
+    - Start with most important predictors
+    - Consider multicollinearity
+
+  dataset_selection: |
+    Choose your dataset for analysis:
+    - Each dataset has its own configuration
+    - Dependent variable is pre-selected
+    - Available predictors are listed
+    - Data is automatically loaded and processed
+    - Binary variables are converted to 0/1
+
+dashboard_title: "Interactive dashboard for regression analysis and model diagnostics"
+dataset_selector: "Select the dataset to analyze from the available options"
+predictors_checklist: "Choose the predictor variables to include in the regression model"
+model_summary: "Detailed statistical summary of the regression model including coefficients, R-squared, and p-values"
+anova_analysis: "Type I (Sequential) ANOVA results showing the contribution of each predictor to the model"
+residual_plot: "Scatter plot of residuals vs fitted values to assess model assumptions"
+correlation_matrix: "Heatmap showing correlations between the dependent variable and selected predictors"
+data_table: "Interactive table showing the raw data with filtering and sorting capabilities" 
