@@ -6,6 +6,9 @@ import numpy as np
 import yaml
 from pandas.api.types import is_numeric_dtype
 from causallearn.search.ConstraintBased.PC import pc
+from causallearn.search.ConstraintBased.FCI import fci
+from causallearn.search.ScoreBased.GES import ges
+from causallearn.search.PermutationBased.GRaSP import grasp
 from causallearn.utils.GraphUtils import GraphUtils
 import base64
 from io import BytesIO
@@ -74,22 +77,34 @@ class CausalDiscovery:
     """Handles causal discovery analysis."""
     
     @staticmethod
-    def run_pc_algorithm(data, alpha=0.05, stable=True):
-        """Run PC algorithm on the data."""
+    def run_algorithm(data, algorithm='pc', alpha=0.05, stable=True):
+        """Run selected causal discovery algorithm on the data."""
         try:
             # Convert data to numpy array and prepare labels
             data_np = data.values
             labels = [f'{col}' for col in data.columns]
             
-            # Run PC algorithm
-            cg = pc(data_np, alpha=alpha, stable=stable)
+            # Run selected algorithm
+            if algorithm == 'pc':
+                cg = pc(data_np, alpha=alpha, stable=stable)
+                graph = cg.G
+            elif algorithm == 'fci':
+                cg, edges = fci(data_np, alpha=alpha)
+                graph = cg
+            elif algorithm == 'ges':
+                record = ges(data_np)
+                graph = record['G']
+            elif algorithm == 'grasp':
+                graph = grasp(data_np)
+            else:
+                raise ValueError(f"Unsupported algorithm: {algorithm}")
             
             # Create a temporary file for the PNG
             with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
                 temp_path = tmp_file.name
             
             # Convert to PNG using the temporary file with labels
-            pyd = GraphUtils.to_pydot(cg.G, labels=labels)
+            pyd = GraphUtils.to_pydot(graph, labels=labels)
             pyd.write_png(temp_path)
             
             # Read the file and encode to base64
@@ -134,49 +149,89 @@ class Dashboard:
             
             # Controls container
             html.Div([
-                # Dataset selector
+                # Left side: Dataset and Algorithm selectors
                 html.Div([
-                    html.Label("Select Dataset:"),
-                    dcc.Dropdown(
-                        id='dataset-selector',
-                        options=[{'label': self.config['datasets'][name]['description'], 
-                                'value': name} for name in self.config['datasets'].keys()],
-                        value=list(self.config['datasets'].keys())[0]
-                    )
-                ], style={'width': '30%', 'display': 'inline-block', 'marginRight': '20px'}),
+                    # Dataset selector
+                    html.Div([
+                        html.Label("Select Dataset:"),
+                        dcc.Dropdown(
+                            id='dataset-selector',
+                            options=[{'label': self.config['datasets'][name]['description'], 
+                                    'value': name} for name in self.config['datasets'].keys()],
+                            value=list(self.config['datasets'].keys())[0]
+                        )
+                    ], style={'marginBottom': '20px'}),
+                    
+                    # Model selector
+                    html.Div([
+                        html.Label("Select Algorithm:"),
+                        dcc.Dropdown(
+                            id='model-selector',
+                            options=[
+                                {'label': 'PC Algorithm', 'value': 'pc'},
+                                {'label': 'FCI Algorithm', 'value': 'fci'},
+                                {'label': 'GES Algorithm', 'value': 'ges'},
+                                {'label': 'GRaSP Algorithm', 'value': 'grasp'}
+                            ],
+                            value='ges'
+                        )
+                    ], style={'marginBottom': '20px'}),
+                    
+                    # Algorithm parameters
+                    html.Div([
+                        html.Label("Significance Level (α):"),
+                        dcc.Slider(
+                            id='alpha-slider',
+                            min=0.01,
+                            max=0.1,
+                            step=0.01,
+                            value=0.05,
+                            marks={i/100: str(i/100) for i in range(1, 11)}
+                        )
+                    ])
+                ], style={'width': '30%', 'display': 'inline-block', 'verticalAlign': 'top', 'marginRight': '20px'}),
                 
-                # Variables selector
+                # Right side: Variables selector
                 html.Div([
                     html.Label("Select Variables:"),
                     dcc.Checklist(
                         id='variables-checklist',
                         options=[],
                         value=[],
-                        inline=True
+                        style={
+                            'maxHeight': '300px',
+                            'overflowY': 'auto',
+                            'padding': '10px',
+                            'backgroundColor': '#f8f9fa',
+                            'borderRadius': '5px'
+                        }
                     )
-                ], style={'width': '65%', 'display': 'inline-block'}),
-                
-                # Algorithm parameters
-                html.Div([
-                    html.Label("Significance Level (α):"),
-                    dcc.Slider(
-                        id='alpha-slider',
-                        min=0.01,
-                        max=0.1,
-                        step=0.01,
-                        value=0.05,
-                        marks={i/100: str(i/100) for i in range(1, 11)}
-                    )
-                ], style={'marginTop': '20px'})
+                ], style={'width': '65%', 'display': 'inline-block', 'verticalAlign': 'top'})
             ], style={'marginBottom': '20px', 'padding': '20px', 'backgroundColor': '#f8f9fa'}),
             
             # Results container
             html.Div([
-                # Causal Graph
+                # Side-by-side container for graph and info
                 html.Div([
-                    html.H4("Causal Graph", style={'textAlign': 'center'}),
-                    html.Img(id='causal-graph', style={'maxWidth': '100%'})
-                ], style={'width': '100%', 'marginBottom': '20px'}),
+                    # Left side: Causal Graph
+                    html.Div([
+                        html.H4("Causal Graph", style={'textAlign': 'center'}),
+                        html.Img(id='causal-graph', style={'maxWidth': '100%'})
+                    ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+                    
+                    # Right side: Algorithm Explanation
+                    html.Div([
+                        html.H4("Algorithm Information", style={'textAlign': 'center'}),
+                        html.Div(id='algorithm-info', style={
+                            'padding': '20px',
+                            'backgroundColor': '#f8f9fa',
+                            'borderRadius': '5px',
+                            'marginTop': '20px',
+                            'height': '100%',
+                            'overflowY': 'auto'
+                        })
+                    ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingLeft': '20px'})
+                ], style={'display': 'flex', 'justifyContent': 'space-between', 'marginBottom': '20px'}),
                 
                 # Error messages
                 html.Div(id='error-message', style={'color': 'red', 'marginTop': '10px'}),
@@ -199,6 +254,103 @@ class Dashboard:
             ])
         ])
     
+    def _get_algorithm_info(self, algorithm, alpha):
+        """Get information about the selected algorithm."""
+        info = {
+            'pc': {
+                'name': 'PC Algorithm',
+                'description': 'A constraint-based algorithm that uses conditional independence tests to learn the causal structure.',
+                'parameters': f'Significance level (α): {alpha}',
+                'assumptions': [
+                    'Causal faithfulness',
+                    'No unobserved confounders',
+                    'No selection bias'
+                ],
+                'strengths': [
+                    'Fast and efficient',
+                    'Can handle high-dimensional data',
+                    'Provides confidence in edge directions'
+                ],
+                'limitations': [
+                    'Sensitive to violations of assumptions',
+                    'May miss some causal relationships',
+                    'Requires large sample sizes'
+                ]
+            },
+            'fci': {
+                'name': 'FCI Algorithm',
+                'description': 'A constraint-based algorithm that can handle unobserved confounders and selection bias.',
+                'parameters': f'Significance level (α): {alpha}',
+                'assumptions': [
+                    'Causal faithfulness',
+                    'No selection bias'
+                ],
+                'strengths': [
+                    'Can handle unobserved confounders',
+                    'More robust than PC',
+                    'Provides partial ancestral graphs'
+                ],
+                'limitations': [
+                    'More computationally intensive',
+                    'May be less informative than PC',
+                    'Requires larger sample sizes'
+                ]
+            },
+            'ges': {
+                'name': 'GES Algorithm',
+                'description': 'A score-based algorithm that searches for the best Bayesian network structure.',
+                'parameters': 'No significance level parameter',
+                'assumptions': [
+                    'Multivariate normal distribution',
+                    'No unobserved confounders',
+                    'No selection bias'
+                ],
+                'strengths': [
+                    'Consistent under faithfulness',
+                    'Can handle non-linear relationships',
+                    'Provides complete DAGs'
+                ],
+                'limitations': [
+                    'Assumes continuous data',
+                    'Computationally intensive',
+                    'May not scale well to high dimensions'
+                ]
+            },
+            'grasp': {
+                'name': 'GRaSP Algorithm',
+                'description': 'A permutation-based algorithm that searches for the sparsest DAG consistent with the data.',
+                'parameters': 'No significance level parameter',
+                'assumptions': [
+                    'No unobserved confounders',
+                    'No selection bias'
+                ],
+                'strengths': [
+                    'Finds sparse structures',
+                    'Robust to violations of assumptions',
+                    'Can handle non-linear relationships'
+                ],
+                'limitations': [
+                    'May be less informative than other methods',
+                    'Computationally intensive',
+                    'May not scale well to high dimensions'
+                ]
+            }
+        }
+        
+        algo_info = info[algorithm]
+        return html.Div([
+            html.H5(algo_info['name'], style={'color': '#2c3e50', 'marginBottom': '15px'}),
+            html.P(algo_info['description'], style={'marginBottom': '15px'}),
+            html.H6('Parameters:', style={'color': '#2c3e50', 'marginBottom': '5px'}),
+            html.P(algo_info['parameters'], style={'marginBottom': '15px'}),
+            html.H6('Assumptions:', style={'color': '#2c3e50', 'marginBottom': '5px'}),
+            html.Ul([html.Li(item) for item in algo_info['assumptions']], style={'marginBottom': '15px'}),
+            html.H6('Strengths:', style={'color': '#2c3e50', 'marginBottom': '5px'}),
+            html.Ul([html.Li(item) for item in algo_info['strengths']], style={'marginBottom': '15px'}),
+            html.H6('Limitations:', style={'color': '#2c3e50', 'marginBottom': '5px'}),
+            html.Ul([html.Li(item) for item in algo_info['limitations']])
+        ])
+
     def _setup_callbacks(self, app):
         """Set up all dashboard callbacks."""
         
@@ -239,32 +391,38 @@ class Dashboard:
         
         @app.callback(
             [Output('causal-graph', 'src'),
-             Output('error-message', 'children')],
+             Output('error-message', 'children'),
+             Output('algorithm-info', 'children')],
             [Input('dataset-selector', 'value'),
              Input('variables-checklist', 'value'),
-             Input('alpha-slider', 'value')]
+             Input('alpha-slider', 'value'),
+             Input('model-selector', 'value')]
         )
-        def update_causal_graph(selected_dataset, selected_variables, alpha):
+        def update_causal_graph(selected_dataset, selected_variables, alpha, algorithm):
             if not selected_variables or len(selected_variables) < 2:
-                return None, "Please select at least two variables for causal discovery."
+                return None, "Please select at least two variables for causal discovery.", None
             
             try:
                 df = self.datasets[selected_dataset]
                 data_subset = df[selected_variables]
                 
                 # Run causal discovery
-                encoded_image, error = CausalDiscovery.run_pc_algorithm(
+                encoded_image, error = CausalDiscovery.run_algorithm(
                     data_subset, 
+                    algorithm=algorithm,
                     alpha=alpha
                 )
                 
                 if error:
-                    return None, f"Error in causal discovery: {error}"
+                    return None, f"Error in causal discovery: {error}", None
                 
-                return f'data:image/png;base64,{encoded_image}', None
+                # Get algorithm information
+                algorithm_info = self._get_algorithm_info(algorithm, alpha)
+                
+                return f'data:image/png;base64,{encoded_image}', None, algorithm_info
                 
             except Exception as e:
-                return None, f"Error: {str(e)}"
+                return None, f"Error: {str(e)}", None
     
     def run(self, port=8050):
         """Run the dashboard."""

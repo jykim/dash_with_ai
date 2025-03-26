@@ -211,4 +211,129 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Built with [Dash](https://dash.plotly.com/) by Plotly
 - Statistical analysis powered by [Statsmodels](https://www.statsmodels.org/)
-- Visualization using [Plotly](https://plotly.com/python/) 
+- Visualization using [Plotly](https://plotly.com/python/)
+
+# Interactive Causal Discovery Dashboard
+
+A powerful dashboard for performing causal discovery analysis using various algorithms. Built with Dash and Python, this application provides an intuitive interface for exploring causal relationships between variables using state-of-the-art causal discovery algorithms.
+
+## Features
+
+- **Multiple Causal Discovery Algorithms**:
+  - PC Algorithm: Constraint-based learning for causal structure
+  - FCI Algorithm: Handles unobserved confounders
+  - GES Algorithm: Score-based Bayesian network learning
+  - GRaSP Algorithm: Permutation-based sparse structure learning
+- **Interactive Variable Selection**: Choose which variables to include in the analysis
+- **Algorithm Information Panel**: Detailed explanation of each algorithm's:
+  - Assumptions
+  - Strengths
+  - Limitations
+  - Parameters
+- **Visual Causal Graphs**: Clear visualization of discovered causal relationships
+- **Interactive Data Table**: Explore the underlying data
+
+## Usage
+
+1. Start the dashboard:
+```bash
+python dash_cd.py
+```
+
+2. Open your web browser and navigate to:
+```
+http://localhost:8052
+```
+
+3. Using the dashboard:
+   - Select a dataset from the dropdown menu
+   - Choose an algorithm (GES is selected by default)
+   - Select variables for analysis
+   - Adjust the significance level (α) if needed
+   - Examine the causal graph and algorithm information
+   - Use the data table for detailed data exploration
+
+## Algorithm Details
+
+### PC Algorithm
+- Constraint-based approach using conditional independence tests
+- Fast and efficient for high-dimensional data
+- Assumes no unobserved confounders
+- Uses significance level (α) for independence testing
+
+### FCI Algorithm
+- Extension of PC that handles unobserved confounders
+- Produces partial ancestral graphs
+- More robust but computationally intensive
+- Uses significance level (α) for independence testing
+
+### GES Algorithm
+- Score-based approach using Bayesian network learning
+- Can handle non-linear relationships
+- Assumes multivariate normal distribution
+- No significance level parameter needed
+
+### GRaSP Algorithm
+- Permutation-based approach for sparse structure learning
+- Robust to assumption violations
+- Can handle non-linear relationships
+- No significance level parameter needed
+
+## Data Configuration
+
+The application uses the same `config.yaml` file as the regression dashboard. Each dataset should be configured with:
+
+```yaml
+datasets:
+  dataset_name:
+    file: "path/to/data.csv"
+    description: "Dataset Description"
+    dependent_var: "target_variable"
+    predictors:
+      - name: "predictor1"
+        label: "Predictor 1 Label"
+      - name: "predictor2"
+        label: "Predictor 2 Label"
+```
+
+### Data Processing
+- Automatically handles missing values
+- Converts binary variables to 0/1 encoding
+- Ensures numeric data for analysis
+
+## Architecture
+
+### Core Components
+
+#### 1. DataLoader
+- Handles dataset loading and preprocessing
+- Manages variable type detection and conversion
+- Ensures data compatibility with selected algorithm
+
+#### 2. CausalDiscovery
+- Implements multiple causal discovery algorithms
+- Handles graph visualization
+- Manages algorithm-specific parameters
+
+#### 3. Dashboard
+- Coordinates all components
+- Manages user interactions
+- Provides algorithm information
+- Handles layout and styling
+
+### Callback Structure
+
+1. **Dataset Selection**
+   - Updates available variables
+   - Resets analysis state
+   - Loads new data
+
+2. **Variable Selection**
+   - Updates causal graph
+   - Updates algorithm information
+   - Maintains state consistency
+
+3. **Algorithm Selection**
+   - Updates visualization method
+   - Updates parameter controls
+   - Updates algorithm information 
