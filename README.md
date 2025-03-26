@@ -332,4 +332,38 @@ datasets:
 3. **Algorithm Selection**
    - Updates visualization method
    - Updates parameter controls
-   - Updates algorithm information 
+   - Updates algorithm information
+
+## Dashboard Visualization
+
+The project includes an interactive dashboard (`dash_viz.py`) that provides visual analysis of the datasets. The dashboard features:
+
+- Dataset selection dropdown to switch between different datasets
+- Variable selection checklist to choose which variables to visualize
+- Interactive scatterplot matrix showing relationships between selected variables
+- Data preview table showing the raw data
+- Hover information including labels (e.g., state names, car names) when available
+
+![Dashboard](dash_viz.jpg)
+
+### Running the Dashboard
+
+To run the dashboard:
+
+```bash
+python dash_viz.py
+```
+
+The dashboard will be available at `http://localhost:8052`. You can:
+1. Select a dataset from the dropdown menu
+2. Choose variables to visualize from the checklist
+3. Interact with the scatterplot matrix by hovering over points
+4. View the raw data in the preview table below
+
+### Features
+
+- **Scatterplot Matrix**: Shows pairwise relationships between selected variables
+- **Histograms**: Displayed on the diagonal of the scatterplot matrix
+- **Interactive Hover**: Shows detailed information including labels when available
+- **Responsive Layout**: Adapts to different screen sizes
+- **Data Preview**: Allows quick inspection of the raw data 

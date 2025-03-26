@@ -151,7 +151,7 @@ class VisualizationDashboard:
             ])
         ])
     
-    def _create_scatterplot_matrix(self, df, selected_variables):
+    def _create_scatterplot_matrix(self, df, selected_variables, selected_dataset):
         """Create an nxn scatterplot matrix for selected variables."""
         if not selected_variables or len(selected_variables) < 2:
             return go.Figure()
@@ -167,11 +167,11 @@ class VisualizationDashboard:
         
         # Get variable labels from config
         var_labels = {}
-        selected_dataset = list(self.config['datasets'].keys())[0]  # Get current dataset
         dep_var = self.config['datasets'][selected_dataset]['dependent_var']
+        label_var = self.config['datasets'][selected_dataset]['label_var']
         
-        # Check if this is the sat_scores dataset
-        is_sat_scores = selected_dataset == 'sat_scores'
+        # Check if label column exists
+        has_label = label_var in df.columns
         
         for var in selected_variables:
             # Check if it's the dependent variable
@@ -192,10 +192,10 @@ class VisualizationDashboard:
                     y_var = selected_variables[i]
                     x_var = selected_variables[j]
                     
-                    # Create hover text based on dataset type
-                    if is_sat_scores:
+                    # Create hover text based on whether label column exists
+                    if has_label:
                         hover_text = (
-                            f"<b>State: %{{customdata}}</b><br>" +
+                            f"<b>{label_var}: %{{customdata}}</b><br>" +
                             f"<b>{var_labels.get(y_var, y_var)}</b><br>" +
                             f"<b>{var_labels.get(x_var, x_var)}</b><br>" +
                             f"x: %{{x:.2f}}<br>" +
@@ -211,7 +211,7 @@ class VisualizationDashboard:
                                 marker=dict(size=5, opacity=0.5),
                                 showlegend=False,
                                 hovertemplate=hover_text,
-                                customdata=df['state']  # Add state data for hover
+                                customdata=df[label_var]  # Add label data for hover
                             ),
                             row=i+1, col=j+1
                         )
@@ -319,7 +319,7 @@ class VisualizationDashboard:
                 return go.Figure()
             
             df = self.datasets[selected_dataset]
-            return self._create_scatterplot_matrix(df, selected_variables)
+            return self._create_scatterplot_matrix(df, selected_variables, selected_dataset)
     
     def run(self, port=8050):
         """Run the dashboard."""
@@ -327,7 +327,7 @@ class VisualizationDashboard:
 
 if __name__ == '__main__':
     dashboard = VisualizationDashboard()
-    dashboard.run(port=8053)
+    dashboard.run(port=8052)
 
 # Create the app instance at module level for WSGI servers
 dashboard = VisualizationDashboard()
