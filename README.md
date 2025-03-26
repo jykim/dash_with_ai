@@ -2,6 +2,8 @@
 
 A powerful, interactive dashboard for performing and visualizing regression analysis on various datasets. Built with Dash and Python, this application provides an intuitive interface for exploring relationships between variables, conducting statistical analysis, and visualizing results.
 
+![Dashboard](dash_mls.jpg)
+
 ## Features
 
 - **Interactive Dataset Selection**: Choose from multiple pre-configured datasets
@@ -203,19 +205,13 @@ The application uses a hierarchical callback structure:
 4. Push to the branch
 5. Create a new Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Built with [Dash](https://dash.plotly.com/) by Plotly
-- Statistical analysis powered by [Statsmodels](https://www.statsmodels.org/)
-- Visualization using [Plotly](https://plotly.com/python/)
 
 # Interactive Causal Discovery Dashboard
 
 A powerful dashboard for performing causal discovery analysis using various algorithms. Built with Dash and Python, this application provides an intuitive interface for exploring causal relationships between variables using state-of-the-art causal discovery algorithms.
+
+![Dashboard](dash_cd.jpg)
+
 
 ## Features
 
